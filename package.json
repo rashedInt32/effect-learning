@@ -1,0 +1,24 @@
+{
+  "name": "effect-learning",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "effect-language-service patch --module typescript",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.14.0",
+  "dependencies": {
+    "effect": "^3.19.8"
+  },
+  "devDependencies": {
+    "@effect/language-service": "^0.57.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
