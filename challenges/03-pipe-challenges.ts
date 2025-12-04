@@ -1,0 +1,144 @@
+import { pipe, Array, Option } from "effect";
+
+console.log("=== Pipe Challenges ===\n");
+
+type Product = {
+  id: number;
+  name: string;
+  price: number;
+  category: string;
+  inStock: boolean;
+};
+
+const products: Product[] = [
+  { id: 1, name: "Laptop", price: 1200, category: "Electronics", inStock: true },
+  { id: 2, name: "Phone", price: 800, category: "Electronics", inStock: false },
+  { id: 3, name: "Desk", price: 300, category: "Furniture", inStock: true },
+  { id: 4, name: "Chair", price: 150, category: "Furniture", inStock: true },
+  { id: 5, name: "Monitor", price: 400, category: "Electronics", inStock: true },
+];
+
+console.log("Challenge 1: Basic Pipe with Numbers");
+console.log("Task: Use pipe to: add 10, multiply by 2, subtract 5.\n");
+
+function calculate(n: number): number {
+  return 0;
+}
+
+console.log("Test:", calculate(5));
+console.log("Expected: 25\n");
+
+console.log("Challenge 2: Array Filtering with Pipe");
+console.log(
+  "Task: Get all products in stock, then filter only Electronics category.\n"
+);
+
+function getElectronicsInStock(): Product[] {
+  return [];
+}
+
+console.log("Test:", getElectronicsInStock().length);
+console.log("Expected: 2\n");
+
+console.log("Challenge 3: Array Transformation Chain");
+console.log(
+  "Task: Get product names, convert to uppercase, sort alphabetically. Use pipe with Array methods.\n"
+);
+
+function getProductNamesUpperSorted(): string[] {
+  return [];
+}
+
+console.log("Test:", getProductNamesUpperSorted());
+console.log("Expected: ['CHAIR', 'DESK', 'LAPTOP', 'MONITOR', 'PHONE']\n");
+
+console.log("Challenge 4: Reduce with Pipe");
+console.log("Task: Calculate total value of all in-stock products.\n");
+
+function getTotalStockValue(): number {
+  return 0;
+}
+
+console.log("Test:", getTotalStockValue());
+console.log("Expected: 2050\n");
+
+console.log("Challenge 5: Pipe with Option");
+console.log(
+  "Task: Find product by ID, get its price, apply 10% discount. Return Option<number>.\n"
+);
+
+function getPriceWithDiscount(id: number): Option.Option<number> {
+  return Option.none();
+}
+
+console.log("Test:", Option.getOrNull(getPriceWithDiscount(1)));
+console.log("Expected: 1080");
+console.log("Test:", Option.getOrNull(getPriceWithDiscount(999)));
+console.log("Expected: null\n");
+
+console.log("Challenge 6: Complex Chain - Group and Count");
+console.log("Task: Group products by category and count items in each.\n");
+
+function countByCategory(): Record<string, number> {
+  return {};
+}
+
+console.log("Test:", countByCategory());
+console.log("Expected: { Electronics: 3, Furniture: 2 }\n");
+
+console.log("Challenge 7: Pipe with Multiple Transformations");
+console.log(
+  "Task: Get products under $500, map to {name, discountedPrice (80% of original)}, sort by price.\n"
+);
+
+type ProductSummary = { name: string; discountedPrice: number };
+
+function getAffordableWithDiscount(): ProductSummary[] {
+  return [];
+}
+
+console.log("Test:", getAffordableWithDiscount());
+console.log(
+  "Expected: [{name: 'Chair', discountedPrice: 120}, {name: 'Desk', discountedPrice: 240}, {name: 'Monitor', discountedPrice: 320}]\n"
+);
+
+console.log("Challenge 8: Nested Pipe Operations");
+console.log(
+  "Task: For each category, get average price of in-stock items. Return Record<string, number>.\n"
+);
+
+function getAveragePriceByCategory(): Record<string, number> {
+  return {};
+}
+
+console.log("Test:", getAveragePriceByCategory());
+console.log("Expected: { Electronics: 800, Furniture: 225 }\n");
+
+console.log("Challenge 9: Advanced - Custom Pipeline");
+console.log(
+  "Task: Create a reusable pipe that: filters by category, sorts by price desc, takes first N items.\n"
+);
+
+function getTopNByCategory(category: string, n: number): Product[] {
+  return [];
+}
+
+console.log("Test:", getTopNByCategory("Electronics", 2).map((p) => p.name));
+console.log("Expected: ['Laptop', 'Phone'] or ['Laptop', 'Monitor']\n");
+
+console.log("Challenge 10: Expert - Compose Multiple Pipes");
+console.log(
+  "Task: Create a data processing pipeline: normalize prices (0-1 range), filter > 0.3, return product names.\n"
+);
+
+function normalizeAndFilter(): string[] {
+  const maxPrice = Math.max(...products.map((p) => p.price));
+  const minPrice = Math.min(...products.map((p) => p.price));
+  
+  return [];
+}
+
+console.log("Test:", normalizeAndFilter());
+console.log("Expected: Product names with normalized price > 0.3\n");
+
+console.log("\n✨ Run the solution file to see the answers!");
