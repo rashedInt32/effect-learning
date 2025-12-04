@@ -1,0 +1,14 @@
+[
+  {
+    "id": "user-1764422753183-i8jourh93y",
+    "email": "alice@example.com",
+    "name": "Alice",
+    "createdAt": "2025-11-29T13:25:53.183Z"
+  },
+  {
+    "id": "user-1764422753185-z8ussqg440k",
+    "email": "bob@example.com",
+    "name": "Bob",
+    "createdAt": "2025-11-29T13:25:53.186Z"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "task-1764422753187-6gu9m8qkimb",
+    "title": "Implement user authentication",
+    "description": "Add JWT-based auth with refresh tokens",
+    "status": "pending",
+    "priority": "high",
+    "assignedTo": "user-1764422753185-z8ussqg440k",
+    "createdBy": "user-1764422753183-i8jourh93y",
+    "createdAt": "2025-11-29T13:25:53.187Z",
+    "updatedAt": "2025-11-29T13:25:53.192Z"
+  },
+  {
+    "id": "task-1764422753190-szwcps8yyu8",
+    "title": "Write documentation",
+    "description": "Document all API endpoints",
+    "status": "in-progress",
+    "priority": "medium",
+    "createdBy": "user-1764422753183-i8jourh93y",
+    "createdAt": "2025-11-29T13:25:53.190Z",
+    "updatedAt": "2025-11-29T13:25:53.193Z"
+  },
+  {
+    "id": "task-1764422753191-l31dst7hr2",
+    "title": "Setup CI/CD pipeline",
+    "status": "pending",
+    "priority": "low",
+    "createdBy": "user-1764422753185-z8ussqg440k",
+    "createdAt": "2025-11-29T13:25:53.191Z",
+    "updatedAt": "2025-11-29T13:25:53.191Z"
+  }
+]
