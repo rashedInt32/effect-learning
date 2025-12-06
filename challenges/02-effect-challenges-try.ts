@@ -1,4 +1,5 @@
-import { Effect } from "effect";
+import { Array, Effect, pipe } from "effect";
+import { mock } from "node:test";
 
 console.log("=== Effect Challenges ===\n");
 
@@ -35,7 +36,7 @@ console.log("Challenge 1: Create a Successful Effect");
 console.log("Task: Create an Effect that succeeds with the number 42.\n");
 
 function getAnswer(): Effect.Effect<number, never, never> {
-  return Effect.fail("not implemented" as never);
+  return Effect.succeed(42);
 }
 
 Effect.runPromise(getAnswer()).then(console.log);
@@ -45,7 +46,7 @@ console.log("Challenge 2: Create a Failed Effect");
 console.log("Task: Create an Effect that fails with UserNotFoundError.\n");
 
 function getUserFailed(): Effect.Effect<User, UserNotFoundError, never> {
-  return Effect.succeed({ id: 1, name: "", email: "" });
+  return Effect.fail(new UserNotFoundError(999));
 }
 
 Effect.runPromise(getUserFailed()).catch((err) => console.log(err._tag));
@@ -59,7 +60,18 @@ console.log(
 function getUserNameUppercase(
   userId: number,
 ): Effect.Effect<string, UserNotFoundError, never> {
-  return Effect.fail(new UserNotFoundError(userId));
+  const userEffect = Effect.gen(function* () {
+    const user = mockDatabase.find((user) => user.id === userId);
+    if (!user) {
+      return yield* Effect.fail(new UserNotFoundError(userId));
+    }
+    return user;
+  });
+
+  return pipe(
+    userEffect,
+    Effect.map((user) => user.name.toUpperCase()),
+  );
 }
 
 Effect.runPromise(getUserNameUppercase(1)).then(console.log);
