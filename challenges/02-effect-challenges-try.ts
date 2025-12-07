@@ -60,16 +60,8 @@ console.log(
 function getUserNameUppercase(
   userId: number,
 ): Effect.Effect<string, UserNotFoundError, never> {
-  const userEffect = Effect.gen(function* () {
-    const user = mockDatabase.find((user) => user.id === userId);
-    if (!user) {
-      return yield* Effect.fail(new UserNotFoundError(userId));
-    }
-    return user;
-  });
-
   return pipe(
-    userEffect,
+    findUserEffect(userId),
     Effect.map((user) => user.name.toUpperCase()),
   );
 }
@@ -94,7 +86,14 @@ function findUserEffect(
 function validateAndGetEmail(
   userId: number,
 ): Effect.Effect<string, UserNotFoundError | ValidationError, never> {
-  return Effect.fail(new UserNotFoundError(userId));
+  return pipe(
+    findUserEffect(userId),
+    Effect.flatMap((user) =>
+      user.email.length > 0
+        ? Effect.succeed(user.email)
+        : Effect.fail(new ValidationError("email", "Email cannot be empty")),
+    ),
+  );
 }
 
 Effect.runPromise(validateAndGetEmail(1)).then(console.log);
