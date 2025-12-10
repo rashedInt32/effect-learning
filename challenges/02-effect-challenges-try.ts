@@ -1,4 +1,4 @@
-import { Array, Effect, pipe } from "effect";
+import { Array, Effect, pipe, Schedule, Schema } from "effect";
 import { mock } from "node:test";
 
 console.log("=== Effect Challenges ===\n");
@@ -107,7 +107,10 @@ console.log(
 const guestUser: User = { id: 0, name: "Guest", email: "guest@example.com" };
 
 function getUserOrGuest(userId: number): Effect.Effect<User, never, never> {
-  return Effect.succeed(guestUser);
+  return pipe(
+    findUserEffect(userId),
+    Effect.catchAll(() => Effect.succeed(guestUser)),
+  );
 }
 
 Effect.runPromise(getUserOrGuest(999)).then((u) => console.log(u.name));
@@ -129,7 +132,10 @@ function mockApiCall(userId: number): Promise<User> {
 }
 
 function getUserFromApi(userId: number): Effect.Effect<User, Error, never> {
-  return Effect.fail(new Error("not implemented"));
+  return Effect.tryPromise({
+    try: () => mockApiCall(userId),
+    catch: (error) => error as Error,
+  });
 }
 
 Effect.runPromise(getUserFromApi(1)).then((u) => console.log(u.name));
@@ -158,7 +164,11 @@ const step3 = (n: number) =>
   });
 
 function runSteps(): Effect.Effect<number, never, never> {
-  return Effect.succeed(0);
+  return pipe(
+    step1,
+    Effect.flatMap((n) => step2(n)),
+    Effect.flatMap((n) => step3(n)),
+  );
 }
 
 Effect.runPromise(runSteps()).then((result) =>
@@ -183,7 +193,10 @@ function getAge(
 function checkAdultStatus(
   userId: number,
 ): Effect.Effect<string, UserNotFoundError, never> {
-  return Effect.succeed("");
+  return pipe(
+    getAge(userId),
+    Effect.map((age) => (age > 18 ? "adult" : "minor")),
+  );
 }
 
 Effect.runPromise(checkAdultStatus(1)).then(console.log);
@@ -206,7 +219,13 @@ function riskyOperation(
 function handleDatabaseError(
   shouldFail: boolean,
 ): Effect.Effect<string, ValidationError, never> {
-  return Effect.succeed("");
+  return pipe(
+    riskyOperation(shouldFail),
+    Effect.catchTag("DatabaseError", (err) => {
+      console.log("caught database error:", err.message);
+      return Effect.succeed("Recovered from database error");
+    }),
+  );
 }
 
 Effect.runPromise(handleDatabaseError(true)).then(console.log);
@@ -227,6 +246,18 @@ function unreliableOperation(): Effect.Effect<string, Error, never> {
     return "Success after retries";
   });
 }
+
+const withRetry = pipe(
+  Effect.try(() => {
+    if (attemptCount < 3) {
+      attemptCount++;
+      throw new Error(`Attemp ${attemptCount} fafiled`);
+    }
+
+    return "Success after retries";
+  }),
+  Effect.retry(Schedule.recurs(2)),
+);
 
 console.log(
   "Hint: Use Effect.retry with a Schedule (import { Schedule } from 'effect')\n",
