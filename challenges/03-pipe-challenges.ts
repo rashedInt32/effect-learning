@@ -1,4 +1,4 @@
-import { pipe, Array, Option, Effect } from "effect";
+import { pipe, Array, Option, Effect, Order } from "effect";
 
 console.log("=== Pipe Challenges ===\n");
 
@@ -99,7 +99,12 @@ console.log(
 );
 
 function getPriceWithDiscount(id: number): Option.Option<number> {
-  return Option.none();
+  return pipe(
+    products,
+    Array.findFirst((p) => p.id === id),
+    Option.map((p) => p.price),
+    Option.map((price) => price * 0.9),
+  );
 }
 
 console.log("Test:", Option.getOrNull(getPriceWithDiscount(1)));
@@ -111,7 +116,16 @@ console.log("Challenge 6: Complex Chain - Group and Count");
 console.log("Task: Group products by category and count items in each.\n");
 
 function countByCategory(): Record<string, number> {
-  return {};
+  return pipe(
+    products,
+    Array.groupBy((p) => p.category),
+    (grouped) =>
+      Object.entries(grouped).map(([category, items]) => [
+        category,
+        items.length,
+      ]),
+    (result) => Object.fromEntries(result),
+  );
 }
 
 console.log("Test:", countByCategory());
@@ -125,7 +139,17 @@ console.log(
 type ProductSummary = { name: string; discountedPrice: number };
 
 function getAffordableWithDiscount(): ProductSummary[] {
-  return [];
+  return pipe(
+    products,
+    Array.filter((p) => p.price < 500),
+    Array.map((p) => ({ name: p.name, discountedPrice: p.price * 0.8 })),
+    Array.sort(
+      Order.mapInput(
+        Order.number,
+        (p: Record<string, any>) => p.discountedPrice,
+      ),
+    ),
+  );
 }
 
 console.log("Test:", getAffordableWithDiscount());
@@ -139,7 +163,21 @@ console.log(
 );
 
 function getAveragePriceByCategory(): Record<string, number> {
-  return {};
+  return pipe(
+    products,
+    Array.filter((p) => p.inStock),
+    Array.groupBy((p) => p.category),
+    (grouped) =>
+      Object.entries(grouped).map(([category, items]) => [
+        category,
+        pipe(
+          items,
+          Array.reduce(0, (acc, p) => acc + p.price),
+          (sum) => sum / items.length,
+        ),
+      ]),
+    (result) => Object.fromEntries(result),
+  );
 }
 
 console.log("Test:", getAveragePriceByCategory());
@@ -151,7 +189,14 @@ console.log(
 );
 
 function getTopNByCategory(category: string, n: number): Product[] {
-  return [];
+  return pipe(
+    products,
+    Array.filter((p) => p.category === category),
+    Array.sort(
+      Order.mapInput(Order.number, (p: Record<string, any>) => p.price),
+    ),
+    Array.take(n),
+  );
 }
 
 console.log(
@@ -169,7 +214,15 @@ function normalizeAndFilter(): string[] {
   const maxPrice = Math.max(...products.map((p) => p.price));
   const minPrice = Math.min(...products.map((p) => p.price));
 
-  return [];
+  return pipe(
+    products,
+    Array.map((p) => ({
+      ...p,
+      normalizeprice: (p.price - minPrice) / (maxPrice - minPrice),
+    })),
+    Array.filter((p) => p.normalizeprice > 0.3),
+    Array.map((p) => p.name),
+  );
 }
 
 console.log("Test:", normalizeAndFilter());

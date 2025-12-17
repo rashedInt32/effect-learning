@@ -11,11 +11,23 @@ type Product = {
 };
 
 const products: Product[] = [
-  { id: 1, name: "Laptop", price: 1200, category: "Electronics", inStock: true },
+  {
+    id: 1,
+    name: "Laptop",
+    price: 1200,
+    category: "Electronics",
+    inStock: true,
+  },
   { id: 2, name: "Phone", price: 800, category: "Electronics", inStock: false },
   { id: 3, name: "Desk", price: 300, category: "Furniture", inStock: true },
   { id: 4, name: "Chair", price: 150, category: "Furniture", inStock: true },
-  { id: 5, name: "Monitor", price: 400, category: "Electronics", inStock: true },
+  {
+    id: 5,
+    name: "Monitor",
+    price: 400,
+    category: "Electronics",
+    inStock: true,
+  },
 ];
 
 console.log("Solution 1: Basic Pipe with Numbers");
@@ -24,7 +36,7 @@ function calculate(n: number): number {
     n,
     (x) => x + 10,
     (x) => x * 2,
-    (x) => x - 5
+    (x) => x - 5,
   );
 }
 
@@ -35,7 +47,7 @@ function getElectronicsInStock(): Product[] {
   return pipe(
     products,
     Array.filter((p) => p.inStock),
-    Array.filter((p) => p.category === "Electronics")
+    Array.filter((p) => p.category === "Electronics"),
   );
 }
 
@@ -47,7 +59,7 @@ function getProductNamesUpperSorted(): string[] {
     products,
     Array.map((p) => p.name),
     Array.map((name) => name.toUpperCase()),
-    Array.sort((a, b) => a.localeCompare(b))
+    Array.sort((a, b) => a.localeCompare(b)),
   );
 }
 
@@ -58,7 +70,7 @@ function getTotalStockValue(): number {
   return pipe(
     products,
     Array.filter((p) => p.inStock),
-    Array.reduce(0, (acc, p) => acc + p.price)
+    Array.reduce(0, (acc, p) => acc + p.price),
   );
 }
 
@@ -70,7 +82,7 @@ function getPriceWithDiscount(id: number): Option.Option<number> {
     products,
     Array.findFirst((p) => p.id === id),
     Option.map((p) => p.price),
-    Option.map((price) => price * 0.9)
+    Option.map((price) => price * 0.9),
   );
 }
 
@@ -87,8 +99,8 @@ function countByCategory(): Record<string, number> {
         Object.entries(grouped).map(([category, items]) => [
           category,
           items.length,
-        ])
-      )
+        ]),
+      ),
   );
 }
 
@@ -102,7 +114,7 @@ function getAffordableWithDiscount(): ProductSummary[] {
     products,
     Array.filter((p) => p.price < 500),
     Array.map((p) => ({ name: p.name, discountedPrice: p.price * 0.8 })),
-    Array.sort((a, b) => a.discountedPrice - b.discountedPrice)
+    Array.sort((a, b) => a.discountedPrice - b.discountedPrice),
   );
 }
 
@@ -121,10 +133,10 @@ function getAveragePriceByCategory(): Record<string, number> {
           pipe(
             items,
             Array.reduce(0, (acc, p) => acc + p.price),
-            (sum) => sum / items.length
+            (sum) => sum / items.length,
           ),
-        ])
-      )
+        ]),
+      ),
   );
 }
 
@@ -136,14 +148,14 @@ function getTopNByCategory(category: string, n: number): Product[] {
     products,
     Array.filter((p) => p.category === category),
     Array.sort((a, b) => b.price - a.price),
-    Array.take(n)
+    Array.take(n),
   );
 }
 
 console.log(
   "Result:",
   getTopNByCategory("Electronics", 2).map((p) => p.name),
-  "✓\n"
+  "✓\n",
 );
 
 console.log("Solution 10: Expert - Compose Multiple Pipes");
@@ -158,7 +170,7 @@ function normalizeAndFilter(): string[] {
       normalizedPrice: (p.price - minPrice) / (maxPrice - minPrice),
     })),
     Array.filter((p) => p.normalizedPrice > 0.3),
-    Array.map((p) => p.name)
+    Array.map((p) => p.name),
   );
 }
 
