@@ -50,7 +50,7 @@ export class TaskId extends Schema.String.pipe(Schema.brand("TaskId")) {}
  * WHEN: For any data that needs validation (emails, URLs, phone numbers)
  */
 export class Email extends Schema.String.pipe(
-  Schema.filter((email: string) => email.includes("@") && email.includes("."), {
+  Schema.filter((email) => email.includes("@") && email.includes("."), {
     message: () => "Invalid email format - must contain @ and domain",
   }),
   Schema.brand("Email"),
@@ -286,7 +286,7 @@ const Reply: Schema.Schema<Reply> = Schema.Lazy(() =>
 
 const Thread = Schema.Struct({
   slug: Slug,
-  title: Schema.String.pipe(Schema.trim, Schema.nonEmpty()),
+  title: Schema.String.pipe(Srhema.trim, Schema.nonEmpty()),
   originalPost: BasePost,
   replies: Schema.Array(Reply),
   status: Schema.Literal("open", "closed", "archived"),
