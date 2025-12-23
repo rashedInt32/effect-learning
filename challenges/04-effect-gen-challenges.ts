@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Schedule } from "effect";
 import { yieldNowWith } from "effect/Micro";
 
 console.log("=== Effect.gen Challenges ===\n");
@@ -151,7 +151,11 @@ function calculateDiscountedPrice(
   userId: number,
   price: number,
 ): Effect.Effect<number, UserNotFoundError, never> {
-  return Effect.succeed(0);
+  return Effect.gen(function* () {
+    const user = yield* getUserEffect(userId);
+    const discount = user.accountBalance > 500 ? 0.1 : 0.05;
+    return price * (1 - discount);
+  });
 }
 
 Effect.runPromise(calculateDiscountedPrice(1, 100)).then(console.log);
@@ -166,7 +170,12 @@ console.log(
 function getUserEmailWithLogging(
   userId: number,
 ): Effect.Effect<string, UserNotFoundError, never> {
-  return Effect.succeed("");
+  return Effect.gen(function* () {
+    const user = yield* getUserEffect(userId);
+    yield* Effect.sync(() => console.log("Processing..."));
+    yield* Effect.sleep("2 seconds");
+    return user.email;
+  });
 }
 
 Effect.runPromise(getUserEmailWithLogging(1)).then(console.log);
@@ -181,7 +190,14 @@ function getTotalBalance(
   userId1: number,
   userId2: number,
 ): Effect.Effect<number, UserNotFoundError, never> {
-  return Effect.succeed(0);
+  return Effect.gen(function* () {
+    const [user1, user2] = yield* Effect.all([
+      getUserEffect(userId1),
+      getUserEffect(userId2),
+    ]);
+
+    return user1.accountBalance + user2.accountBalance;
+  });
 }
 
 Effect.runPromise(getTotalBalance(1, 2)).then(console.log);
@@ -200,7 +216,14 @@ const guestUser: User = {
 };
 
 function getUserOrGuest(userId: number): Effect.Effect<User, never, never> {
-  return Effect.succeed(guestUser);
+  return Effect.gen(function* () {
+    const result = yield* Effect.either(getUserEffect(userId));
+    if (result._tag === "Left") {
+      return guestUser;
+    }
+
+    return result.right;
+  });
 }
 
 Effect.runPromise(getUserOrGuest(999)).then((u) => console.log(u.name));
@@ -220,7 +243,24 @@ function transferMoney(
   UserNotFoundError | InsufficientFundsError,
   never
 > {
-  return Effect.succeed({ senderBalance: 0, receiverBalance: 0 });
+  return Effect.gen(function* () {
+    const fromUser = yield* getUserEffect(fromUserId);
+    const toUser = yield* getUserEffect(toUserId);
+
+    if (fromUser.accountBalance < amount) {
+      return yield* Effect.fail(
+        new InsufficientFundsError(amount, fromUser.accountBalance),
+      );
+    }
+
+    fromUser.accountBalance -= amount;
+    toUser.accountBalance += amount;
+
+    return {
+      senderBalance: fromUser.accountBalance,
+      receiverBalance: toUser.accountBalance,
+    };
+  });
 }
 
 Effect.runPromise(transferMoney(1, 2, 200)).then(console.log);
@@ -241,6 +281,11 @@ function unreliableApi(): Effect.Effect<string, Error, never> {
     return "Success";
   });
 }
+
+const withRetryAndTimeout = Effect.gen(function* () {
+  const result = yield* Effect.retry(unreliableApi(), Schedule.recurs(3));
+  return result;
+});
 
 console.log(
   "Hint: Use Effect.retry and Effect.timeout inside Effect.gen. Import Schedule for retry.\n",
