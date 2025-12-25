@@ -54,8 +54,8 @@ setTimeout(() => {
   Effect.runPromise(
     Effect.provide(
       programWithMultipleServices,
-      Layer.merge(ConsoleLogger, MockDatabase)
-    )
+      Layer.merge(ConsoleLogger, MockDatabase),
+    ),
   ).then((results) => console.log("Results:", results, "✓\n"));
 }, 100);
 
@@ -81,7 +81,7 @@ const UserServiceLive = Layer.effect(
           return results[0] || "User not found";
         }),
     };
-  })
+  }),
 );
 
 const userProgram = Effect.gen(function* () {
@@ -92,12 +92,12 @@ const userProgram = Effect.gen(function* () {
 
 const AppLayer = Layer.provide(
   UserServiceLive,
-  Layer.merge(ConsoleLogger, MockDatabase)
+  Layer.merge(ConsoleLogger, MockDatabase),
 );
 
 setTimeout(() => {
   Effect.runPromise(Effect.provide(userProgram, AppLayer)).then((user) =>
-    console.log("User:", user, "✓\n")
+    console.log("User:", user, "✓\n"),
   );
 }, 200);
 
@@ -148,7 +148,7 @@ const errorProgram = Effect.gen(function* () {
 
 setTimeout(() => {
   Effect.runPromise(Effect.provide(errorProgram, FailingDatabase)).catch(
-    (err) => console.log("Caught:", err._tag, "✓\n")
+    (err) => console.log("Caught:", err._tag, "✓\n"),
   );
 }, 400);
 
@@ -176,7 +176,7 @@ const ConfigurableLogger = Layer.effect(
           console.log(`[${env.toUpperCase()}]: ${message}`);
         }),
     };
-  })
+  }),
 );
 
 const configProgram = Effect.gen(function* () {
@@ -186,7 +186,7 @@ const configProgram = Effect.gen(function* () {
 
 setTimeout(() => {
   Effect.runPromise(
-    Effect.provide(configProgram, Layer.provide(ConfigurableLogger, DevConfig))
+    Effect.provide(configProgram, Layer.provide(ConfigurableLogger, DevConfig)),
   );
   console.log("✓\n");
 }, 500);
@@ -195,7 +195,7 @@ console.log("Solution 9: Advanced - Compose Layers");
 const FullAppLayer = Layer.mergeAll(
   ConsoleLogger,
   MockDatabase,
-  Layer.provide(UserServiceLive, Layer.merge(ConsoleLogger, MockDatabase))
+  Layer.provide(UserServiceLive, Layer.merge(ConsoleLogger, MockDatabase)),
 );
 
 const fullProgram = Effect.gen(function* () {
@@ -209,7 +209,7 @@ const fullProgram = Effect.gen(function* () {
 
 setTimeout(() => {
   Effect.runPromise(Effect.provide(fullProgram, FullAppLayer)).then((user) =>
-    console.log("Full app result:", user, "✓\n")
+    console.log("Full app result:", user, "✓\n"),
   );
 }, 600);
 
@@ -228,7 +228,7 @@ const TestDatabase = Layer.succeed(Database, {
 
 const TestUserService = Layer.provide(
   UserServiceLive,
-  Layer.merge(TestLoggerForStack, TestDatabase)
+  Layer.merge(TestLoggerForStack, TestDatabase),
 );
 
 const testFullProgram = Effect.gen(function* () {
@@ -243,7 +243,7 @@ setTimeout(() => {
       console.log("Test result:", user);
       console.log("Test logs:", testMessages);
       console.log("✓");
-    }
+    },
   );
 }, 700);
 

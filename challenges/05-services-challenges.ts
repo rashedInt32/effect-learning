@@ -28,11 +28,12 @@ console.log("✓ Implementation created\n");
 
 console.log("Challenge 3: Use the Service");
 console.log(
-  "Task: Create a program that uses Logger to log 'Hello from Service!'.\n"
+  "Task: Create a program that uses Logger to log 'Hello from Service!'.\n",
 );
 
 const program = Effect.gen(function* () {
-  return yield* Effect.succeed("not implemented");
+  const logger = yield* Logger;
+  return yield* logger.log("Hello from Service!");
 });
 
 Effect.runPromise(Effect.provide(program, ConsoleLogger));
@@ -49,23 +50,27 @@ class Database extends Context.Tag("Database")<
 >() {}
 
 const MockDatabase = Layer.succeed(Database, {
-  query: (sql: string) =>
-    Effect.succeed([`Result for: ${sql}`]),
+  query: (sql: string) => Effect.succeed([`Result for: ${sql}`]),
 });
 
 const programWithMultipleServices = Effect.gen(function* () {
-  return yield* Effect.succeed([]);
+  const logger = yield* Logger;
+  const db = yield* Database;
+  yield* logger.log("Executing query");
+  const dbquery = yield* db.query("SELECT * FROM users");
+  return dbquery;
 });
 
-Effect.runPromise(
-  Effect.provide(
-    programWithMultipleServices,
-    Layer.merge(ConsoleLogger, MockDatabase)
-  )
-);
-console.log(
-  "Expected: [LOG]: Executing query, then returns query results\n"
-);
+setTimeout(() => {
+  Effect.runPromise(
+    Effect.provide(
+      programWithMultipleServices,
+      Layer.merge(ConsoleLogger, MockDatabase),
+    ),
+  ).then((results) => console.log("Results:", results));
+}, 100);
+
+console.log("Expected: [LOG]: Executing query, then returns query results\n");
 
 console.log("Challenge 5: Service Dependencies");
 console.log("Task: Create UserService that depends on Database and Logger.\n");
@@ -77,15 +82,47 @@ class UserService extends Context.Tag("UserService")<
   }
 >() {}
 
-const UserServiceLive = Layer.succeed(UserService, {
-  getUser: (id: number) => Effect.succeed(`User ${id}`),
+const UserServiceLive = Layer.effect(
+  UserService,
+  Effect.gen(function* () {
+    const logger = yield* Logger;
+    const db = yield* Database;
+
+    return UserService.of({
+      getUser: (userId: number) =>
+        Effect.gen(function* () {
+          yield* logger.log("Fetching user...");
+          const user = yield* db.query(
+            `SELECT name FROM users WHERE id = ${userId}`,
+          );
+          return user[0] || "No user found";
+        }),
+    });
+  }),
+);
+
+const userProgram = Effect.gen(function* () {
+  const userService = yield* UserService;
+  const user = userService.getUser(42);
+  return user;
 });
+
+const AppLayer = Layer.provide(
+  UserServiceLive,
+  Layer.merge(ConsoleLogger, MockDatabase),
+);
+
+setTimeout(() => {
+  Effect.runPromise(Effect.provide(userProgram, AppLayer)).then((user) =>
+    console.log("User:", user, "✓\n"),
+  );
+}, 200);
 
 console.log("Hint: Use Layer.effect to access other services\n");
 
 console.log("Challenge 6: Swap Implementations");
 console.log(
-  "Task: Create a TestLogger that doesn't print, for testing purposes.\n"
+  "Task: Create a TestLogger that doesn't print, for testing purposes.\n",
 );
 
 const messages: string[] = [];
@@ -132,9 +169,9 @@ const errorProgram = Effect.gen(function* () {
   return yield* Effect.succeed([]);
 });
 
-Effect.runPromise(
-  Effect.provide(errorProgram, FailingDatabase)
-).catch((err) => console.log("Caught:", err._tag));
+Effect.runPromise(Effect.provide(errorProgram, FailingDatabase)).catch((err) =>
+  console.log("Caught:", err._tag),
+);
 
 console.log("Expected: Caught: DBError\n");
 
@@ -156,18 +193,18 @@ console.log("Hint: Create Logger layer that depends on Config layer\n");
 
 console.log("Challenge 9: Advanced - Compose Layers");
 console.log(
-  "Task: Build app layer that provides Logger, Database, and UserService in correct order.\n"
+  "Task: Build app layer that provides Logger, Database, and UserService in correct order.\n",
 );
 
 console.log("Hint: Use Layer.provide and Layer.merge\n");
 
 console.log("Challenge 10: Expert - Test Entire Stack");
 console.log(
-  "Task: Create test versions of all services and verify UserService works correctly.\n"
+  "Task: Create test versions of all services and verify UserService works correctly.\n",
 );
 
 console.log(
-  "Hint: Mock Database to return specific user, verify Logger captured messages\n"
+  "Hint: Mock Database to return specific user, verify Logger captured messages\n",
 );
 
 console.log("\n✨ Run the solution file to see the answers!");
