@@ -1,4 +1,5 @@
-import { Effect, Context, Layer } from "effect";
+import { Effect, Context, Layer, Data } from "effect";
+import { setTime } from "effect/TestClock";
 
 console.log("=== Services & Dependency Injection Challenges ===\n");
 
@@ -101,6 +102,8 @@ const UserServiceLive = Layer.effect(
   }),
 );
 
+// this is a long command line
+
 const userProgram = Effect.gen(function* () {
   const userService = yield* UserService;
   const user = userService.getUser(42);
@@ -166,7 +169,9 @@ const FailingDatabase = Layer.succeed(DatabaseWithErrors, {
 });
 
 const errorProgram = Effect.gen(function* () {
-  return yield* Effect.succeed([]);
+  const failingDb = yield* DatabaseWithErrors;
+  const result = yield* failingDb.query(`INVALID`);
+  return result;
 });
 
 Effect.runPromise(Effect.provide(errorProgram, FailingDatabase)).catch((err) =>
@@ -189,6 +194,27 @@ const DevConfig = Layer.succeed(Config, {
   getEnv: () => "dev",
 });
 
+const ConfigLooger = Layer.effect(
+  Logger,
+  Effect.gen(function* () {
+    const config = yield* Config;
+    const dev = config.getEnv();
+    return {
+      log: (messages: string) =>
+        Effect.sync(() => console.log(`[${dev.toUpperCase()}]: ${messages}`)),
+    };
+  }),
+);
+
+const configProgram = Effect.gen(function* () {
+  const configlogger = yield* Logger;
+  return configlogger.log("Application started");
+});
+
+setTimeout(() => {
+  Effect.provide(configProgram, Layer.provide(ConfigLooger, DevConfig));
+}, 100);
+
 console.log("Hint: Create Logger layer that depends on Config layer\n");
 
 console.log("Challenge 9: Advanced - Compose Layers");
@@ -196,12 +222,41 @@ console.log(
   "Task: Build app layer that provides Logger, Database, and UserService in correct order.\n",
 );
 
+const AppLayerMerge = Layer.mergeAll(
+  ConsoleLogger,
+  MockDatabase,
+  Layer.provide(UserServiceLive, Layer.merge(ConsoleLogger, MockDatabase)),
+);
+
+const fullProgram = Effect.gen(function* () {
+  const logger = yield* Logger;
+  const userService = yield* UserService;
+
+  yield* logger.log("Full application started");
+  const user = yield* userService.getUser(1);
+  return user;
+});
+
+setTimeout(() => {
+  Effect.runPromise(Effect.provide(fullProgram, AppLayerMerge)).then((user) =>
+    console.log("returnng user", user),
+  );
+}, 300);
+
 console.log("Hint: Use Layer.provide and Layer.merge\n");
 
 console.log("Challenge 10: Expert - Test Entire Stack");
 console.log(
   "Task: Create test versions of all services and verify UserService works correctly.\n",
 );
+
+const testFullServie = Effect.gen(function* () {
+  const logger = yield* Logger;
+  const userService = yield* UserService;
+
+  yield* logger.log("Start application");
+  const user = yield* userService.getUser(1);
+});
 
 console.log(
   "Hint: Mock Database to return specific user, verify Logger captured messages\n",
