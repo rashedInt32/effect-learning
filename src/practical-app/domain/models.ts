@@ -142,7 +142,7 @@ export class Task extends Schema.Class<Task>("Task")({
 export const createTask = (params: {
   title: string;
   description?: string;
-  createdBy: typeof UserId;
+  createdBy: typeof UserId.Type;
   priority?: TaskPriority;
 }): Task =>
   new Task({
@@ -220,83 +220,3 @@ export const TaskJson = Schema.encodedSchema(Task);
  * }) // ✅ Throws error at runtime - validation fails!
  * ```
  */
-
-export class PostId extends Schema.String.pipe(Schema.brand("PostId")) {}
-class Slug extends Schema.TemplateLiteral(
-  Schema.String.pipe(Schema.pattern(/^[a-z0-9]+$/)),
-  Schema.Literal("-"),
-  Schema.String.pipe(Schema.minLength(5)),
-) {}
-
-const VoteCount = Schema.Number.pipe(
-  Schema.int(),
-  Schema.greaterThanOrEqualTo(0),
-  Schema.filter((n: number) => n <= 1000, {
-    message: () => "Votes capped at 1000",
-  }),
-);
-
-const Timestamp = Schema.String.pipe(
-  Schema.transform(
-    Schema.Date,
-    (s: Schema.Date) => new Date(s),
-    (d: Schema.Date) => d.toISoString(),
-  ),
-);
-
-const Attachement = Schema.Union(
-  Schema.Struct({
-    type: Schema.Literal("image"),
-    url: Schema.String.pipe(Schema.startsWith("https://")),
-  }),
-  Schema.Struct({
-    type: Schema.Literal("video"),
-    url: Schema.String,
-    duration: Schema.Number.pipe(Schema.greaterThan(0)),
-  }),
-  Schema.Struct({
-    type: Schema.Literal("file"),
-    name: Schema.String,
-    size: VoteCount,
-  }),
-);
-
-const BasePost = Schema.Struct({
-  id: PostId,
-  author: UserId,
-  content: Schema.String.pipe(Schema.minLength(10), Schema.maxLength(1000)),
-  timestamp: Timestamp,
-  votes: VoteCount,
-  attachments: Schema.optional(Schema.Array(Attachement)),
-});
-
-interface Reply extends Schema.Schema.Type<typeof BasePost> {
-  replies: Reply[];
-}
-
-const Reply: Schema.Schema<Reply> = Schema.Lazy(() =>
-  Schema.Intersect(
-    BasePost,
-    Schema.Struct({
-      parentId: PostId,
-      replies: Schema.Array(Reply),
-    }),
-  ),
-);
-
-const Thread = Schema.Struct({
-  slug: Slug,
-  title: Schema.String.pipe(Srhema.trim, Schema.nonEmpty()),
-  originalPost: BasePost,
-  replies: Schema.Array(Reply),
-  status: Schema.Literal("open", "closed", "archived"),
-  moderators: Schema.Array(UserId),
-  viewCount: VoteCount,
-});
-
-class ForumThread extends Schema.transform(
-  Thread,
-  Schema.brand("ForumThread"),
-) {}
-
-type ForumThreadType = Schema.Schema.Type<typeof ForumThread>;
